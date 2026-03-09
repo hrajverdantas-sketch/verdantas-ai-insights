@@ -1,4 +1,4 @@
-import { LayoutDashboard, Search, ShoppingCart, FileText, Settings, X } from "lucide-react";
+import { LayoutDashboard, Search, ShoppingCart, FileText, Settings, X, PlusCircle } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
