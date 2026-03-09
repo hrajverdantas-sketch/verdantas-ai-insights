@@ -11,6 +11,7 @@ import SearchReportsPage from "@/pages/SearchReportsPage";
 import OrdersPage from "@/pages/OrdersPage";
 import InvoicesPage from "@/pages/InvoicesPage";
 import SettingsPage from "@/pages/SettingsPage";
+import NewOrderPage from "@/pages/NewOrderPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
