@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, XCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +13,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 
 const statusStyles: Record<string, string> = {
@@ -27,15 +30,6 @@ const statusStyles: Record<string, string> = {
   Shipped: "bg-success/15 text-success",
   Rejected: "bg-destructive/15 text-destructive",
 };
-
-const reportTypes = [
-  "Phase I ESA",
-  "Phase II ESA",
-  "Transaction Screen",
-  "ASTM Vapor Encroachment",
-  "Environmental Compliance",
-  "Wetland Delineation",
-];
 
 interface Order {
   guid: string;
@@ -47,48 +41,33 @@ interface Order {
 }
 
 const initialOrders: Order[] = [
-  { guid: "ORD-8a3f-4b2c", address: "1200 River Rd, Columbus, OH 43215", date: "2024-12-01", status: "Shipped" },
-  { guid: "ORD-9c1d-7e5a", address: "450 Main St, Cleveland, OH 44114", date: "2024-12-03", status: "Processing" },
-  { guid: "ORD-2b4e-1f8c", address: "780 Oak Ave, Cincinnati, OH 45202", date: "2024-12-05", status: "OnSubmission" },
-  { guid: "ORD-5d7g-3a9b", address: "320 Lakeview Dr, Toledo, OH 43604", date: "2024-12-07", status: "Rejected" },
-  { guid: "ORD-6e8h-2c4d", address: "90 Industrial Pkwy, Akron, OH 44308", date: "2024-12-09", status: "Processing" },
-  { guid: "ORD-7f9i-5d6e", address: "2100 Commerce Blvd, Dayton, OH 45402", date: "2024-12-10", status: "Shipped" },
+  { guid: "ORD-8a3f-4b2c", address: "1200 River Rd, Columbus, OH 43215", date: "2024-12-01", status: "Shipped", reportType: "Phase I ESA", clientName: "Riverside Dev Corp" },
+  { guid: "ORD-9c1d-7e5a", address: "450 Main St, Cleveland, OH 44114", date: "2024-12-03", status: "Processing", reportType: "Phase II ESA", clientName: "Great Lakes Holdings" },
+  { guid: "ORD-2b4e-1f8c", address: "780 Oak Ave, Cincinnati, OH 45202", date: "2024-12-05", status: "OnSubmission", reportType: "Transaction Screen", clientName: "Midwest Realty" },
+  { guid: "ORD-5d7g-3a9b", address: "320 Lakeview Dr, Toledo, OH 43604", date: "2024-12-07", status: "Rejected", reportType: "Environmental Compliance", clientName: "Toledo Mfg" },
+  { guid: "ORD-6e8h-2c4d", address: "90 Industrial Pkwy, Akron, OH 44308", date: "2024-12-09", status: "Processing", reportType: "Wetland Delineation", clientName: "Summit Properties" },
+  { guid: "ORD-7f9i-5d6e", address: "2100 Commerce Blvd, Dayton, OH 45402", date: "2024-12-10", status: "Shipped", reportType: "ASTM Vapor Encroachment", clientName: "Wright Capital" },
 ];
 
-function generateGuid() {
-  const hex = () => Math.random().toString(16).substring(2, 6);
-  return `ORD-${hex()}-${hex()}`;
-}
-
 export default function OrdersPage() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [address, setAddress] = useState("");
-  const [clientName, setClientName] = useState("");
-  const [reportType, setReportType] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [cancelOrder, setCancelOrder] = useState<Order | null>(null);
   const { toast } = useToast();
 
-  const handleCreate = () => {
-    if (!address.trim() || !reportType) {
-      toast({ title: "Missing fields", description: "Please fill in the property address and report type.", variant: "destructive" });
-      return;
-    }
-
-    const newOrder: Order = {
-      guid: generateGuid(),
-      address: address.trim(),
-      date: new Date().toISOString().split("T")[0],
-      status: "OnSubmission",
-      reportType,
-      clientName: clientName.trim(),
-    };
-
-    setOrders((prev) => [newOrder, ...prev]);
-    setDialogOpen(false);
-    setAddress("");
-    setClientName("");
-    setReportType("");
-    toast({ title: "Order created", description: `Order ${newOrder.guid} has been submitted.` });
+  const handleCancelConfirm = () => {
+    if (!cancelOrder) return;
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.guid === cancelOrder.guid ? { ...o, status: "Rejected" } : o
+      )
+    );
+    toast({
+      title: "Order cancelled",
+      description: `Order ${cancelOrder.guid} has been cancelled.`,
+    });
+    setCancelOrder(null);
   };
 
   return (
@@ -98,7 +77,7 @@ export default function OrdersPage() {
           <h1 className="text-2xl font-heading font-bold text-foreground">Orders</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage and track your environmental report orders</p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
+        <Button onClick={() => navigate("/orders/new")} className="gap-2">
           <Plus className="w-4 h-4" />
           New Order
         </Button>
@@ -141,11 +120,21 @@ export default function OrdersPage() {
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => setSelectedOrder(order)}
+                        >
                           <Eye className="w-4 h-4" />
                         </Button>
                         {order.status !== "Shipped" && order.status !== "Rejected" && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => setCancelOrder(order)}
+                          >
                             <XCircle className="w-4 h-4" />
                           </Button>
                         )}
@@ -159,52 +148,65 @@ export default function OrdersPage() {
         </div>
       </motion.div>
 
-      {/* Create Order Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+      {/* Order Detail Dialog */}
+      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Create New Order</DialogTitle>
-            <DialogDescription>Submit a new environmental report order.</DialogDescription>
+            <DialogTitle>Order Details</DialogTitle>
+            <DialogDescription>Full information for this order.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="address">Property Address *</Label>
-              <Input
-                id="address"
-                placeholder="e.g. 1200 River Rd, Columbus, OH 43215"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
+          {selectedOrder && (
+            <div className="space-y-4 py-2">
+              <DetailRow label="Order GUID" value={selectedOrder.guid} mono />
+              <DetailRow label="Property Address" value={selectedOrder.address} />
+              <DetailRow label="Client Name" value={selectedOrder.clientName || "—"} />
+              <DetailRow label="Report Type" value={selectedOrder.reportType || "—"} />
+              <DetailRow label="Order Date" value={selectedOrder.date} />
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Status</span>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${statusStyles[selectedOrder.status]}`}>
+                  {selectedOrder.status}
+                </span>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="client">Client Name</Label>
-              <Input
-                id="client"
-                placeholder="e.g. Acme Corp"
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Report Type *</Label>
-              <Select value={reportType} onValueChange={setReportType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select report type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {reportTypes.map((type) => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreate}>Submit Order</Button>
+            <Button variant="outline" onClick={() => setSelectedOrder(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Cancel Order Confirmation */}
+      <AlertDialog open={!!cancelOrder} onOpenChange={() => setCancelOrder(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel order{" "}
+              <span className="font-mono font-semibold text-foreground">{cancelOrder?.guid}</span>?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Order</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Cancel Order
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+function DetailRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className={`text-sm text-foreground ${mono ? "font-mono" : ""}`}>{value}</span>
     </div>
   );
 }

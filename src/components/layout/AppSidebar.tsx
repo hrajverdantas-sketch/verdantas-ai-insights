@@ -1,4 +1,4 @@
-import { LayoutDashboard, Search, ShoppingCart, FileText, Settings, X } from "lucide-react";
+import { LayoutDashboard, Search, ShoppingCart, FileText, Settings, X, PlusCircle } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,7 @@ const navItems = [
   { title: "Dashboard", path: "/", icon: LayoutDashboard },
   { title: "Search Reports", path: "/search", icon: Search },
   { title: "Orders", path: "/orders", icon: ShoppingCart },
+  { title: "New Order", path: "/orders/new", icon: PlusCircle },
   { title: "Invoices", path: "/invoices", icon: FileText },
   { title: "Settings", path: "/settings", icon: Settings },
 ];
