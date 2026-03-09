@@ -7,6 +7,7 @@ const navItems = [
   { title: "Dashboard", path: "/", icon: LayoutDashboard },
   { title: "Search Reports", path: "/search", icon: Search },
   { title: "Orders", path: "/orders", icon: ShoppingCart },
+  { title: "New Order", path: "/orders/new", icon: PlusCircle },
   { title: "Invoices", path: "/invoices", icon: FileText },
   { title: "Settings", path: "/settings", icon: Settings },
 ];

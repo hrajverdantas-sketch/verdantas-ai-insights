@@ -28,6 +28,7 @@ function AppRoutes() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/search" element={<SearchReportsPage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/new" element={<NewOrderPage />} />
           <Route path="/invoices" element={<InvoicesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
